@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "site",
+  "main": "src/index.js",
+  "compatibility_date": "2026-05-31",
+
+  // Brand logo + favicon are uploaded to the platform asset store at deploy
+  // time; the worker resolves their CDN URLs via env.ASSETS.url(). Under local
+  // `wrangler dev` (no env.ASSETS.url) the worker inlines them instead.
+  "assets": {
+    "directory": "./public"
+  },
+
+  // Custom host routing for this namespace is operator-enabled (declared in the
+  // platform Terraform: site_host = wdl.dev). Claim the apex so this worker
+  // serves wdl.dev directly, not just <ns>.<platform-domain>.
+  "routes": [
+    "wdl.dev/*"
+  ]
+}
