@@ -23,10 +23,22 @@ const REPOS = [
       "Ships your code to a WDL platform. Bundles the project with Wrangler v4, uploads " +
       "it to the control plane, and manages D1, R2, KV, queues, secrets, and `wdl tail` " +
       "logs inside your own namespace. Nothing is ever sent to Cloudflare.",
-    meta: "Node.js · npm",
+    meta: "JS · npm",
     links: [
       { label: "GitHub", href: `${ORG}/cli` },
       { label: "npm", href: "https://www.npmjs.com/package/@wdl-dev/cli" },
+    ],
+  },
+  {
+    name: "aws-sigv4",
+    role: "library",
+    blurb:
+      "A small, zero-dependency AWS SigV4 signer for web-standard runtimes and " +
+      "S3-compatible storage — a `SigV4Client` with sign() and fetch(), and nothing else.",
+    meta: "TypeScript · npm",
+    links: [
+      { label: "GitHub", href: `${ORG}/aws-sigv4` },
+      { label: "npm", href: "https://www.npmjs.com/package/@wdl-dev/aws-sigv4" },
     ],
   },
   {
@@ -34,8 +46,7 @@ const REPOS = [
     role: "site",
     blurb:
       "This page — a single WDL Worker scaffolded with `wdl init`. It renders its own " +
-      "HTML and serves its CSS and favicon through ASSETS, deployed on WDL itself. " +
-      "The page you are reading is the response.",
+      "HTML and serves its CSS and favicon through ASSETS. You're reading its response.",
     meta: "Worker · ASSETS",
     links: [{ label: "GitHub", href: `${ORG}/site` }],
   },
@@ -96,7 +107,7 @@ const page = ({ cssUrl, faviconUrl }) => `<!DOCTYPE html>
     </section>
 
     <main>
-      <div class="repos-head">Three repositories</div>
+      <div class="repos-head">Four repositories</div>
       ${REPOS.map(repoRow).join("\n      ")}
     </main>
 
