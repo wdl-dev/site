@@ -30,6 +30,19 @@ const REPOS = [
     ],
   },
   {
+    name: "chat",
+    role: "product",
+    blurb:
+      "A WDL Worker that builds WDL Workers — an AI agent that turns one line into a " +
+      "running worker: build it in a MicroVM sandbox, deploy it, preview it. A product " +
+      "running as a tenant on WDL.",
+    meta: "JS · MicroVM",
+    links: [
+      { label: "GitHub", href: `${ORG}/chat` },
+      { label: "chat.wdl.dev", href: "https://chat.wdl.dev" },
+    ],
+  },
+  {
     name: "aws-sigv4",
     role: "library",
     blurb:
@@ -107,7 +120,7 @@ const page = ({ cssUrl, faviconUrl }) => `<!DOCTYPE html>
     </section>
 
     <main>
-      <div class="repos-head">Four repositories</div>
+      <div class="repos-head">Five repositories</div>
       ${REPOS.map(repoRow).join("\n      ")}
     </main>
 
