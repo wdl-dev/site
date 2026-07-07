@@ -5,8 +5,9 @@
   "compatibility_date": "2026-05-31",
 
   // Brand logo + favicon are uploaded to the platform asset store at deploy
-  // time; the worker resolves their CDN URLs via env.ASSETS.url(). Under local
-  // `wrangler dev` (no env.ASSETS.url) the worker inlines them instead.
+  // time; the worker resolves their CDN URLs via env.ASSETS.url(). That method
+  // exists only on WDL — under local `wrangler dev` it is undefined and the
+  // worker throws. There is no local fallback; verify by deploying.
   "assets": {
     "directory": "./public"
   },

@@ -14,9 +14,9 @@ testing on the platform.
 
 ```
 src/index.js             worker entry — renders the page and the repo list
-public/                  ASSETS: styles.css, favicon.svg
-brand/WDL-black.svg      brand source the favicon is generated from
-scripts/build-logo.mjs   regenerates public/favicon.svg from brand/WDL-black.svg
+public/                  ASSETS: styles.css, favicon.svg, og.png
+brand/WDL-black.svg      brand source the favicon and OG image are generated from
+scripts/build-logo.mjs   regenerates public/favicon.svg + public/og.png from brand/WDL-black.svg
 wrangler.jsonc           worker config (assets.directory = ./public, route wdl.dev/*)
 AGENTS.md / CLAUDE.md    pointers to the per-feature docs shipped with @wdl-dev/cli
 ```
@@ -26,8 +26,8 @@ of `src/index.js`. The page styling lives in `public/styles.css`.
 
 ## Brand assets
 
-`public/favicon.svg` is generated from `brand/WDL-black.svg`. After changing the
-brand files, regenerate it:
+`public/favicon.svg` and `public/og.png` (the social share card) are generated
+from `brand/WDL-black.svg`. After changing the brand files, regenerate them:
 
 ```sh
 npm run build:logo

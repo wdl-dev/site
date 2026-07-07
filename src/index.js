@@ -65,6 +65,31 @@ const REPOS = [
   },
 ];
 
+// ≤125 chars: social previews truncate og:description around there.
+const DESCRIPTION =
+  "WDL — a self-hosted, multi-tenant Workers platform on stock workerd, " +
+  "with its CLI, AI worker builder, and libraries.";
+
+const SITE_URL = "https://wdl.dev/";
+const SHARE_TEXT = "WDL — self-hosted Workers platform on stock workerd";
+const SHARE_LINKS = [
+  {
+    label: "X",
+    href: `https://twitter.com/intent/tweet?url=${encodeURIComponent(SITE_URL)}&text=${encodeURIComponent(SHARE_TEXT)}`,
+  },
+  {
+    label: "Hacker News",
+    href: `https://news.ycombinator.com/submitlink?u=${encodeURIComponent(SITE_URL)}&t=${encodeURIComponent(SHARE_TEXT)}`,
+  },
+  {
+    label: "LinkedIn",
+    href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(SITE_URL)}`,
+  },
+];
+
+const COUNT_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
+const repoCount = COUNT_WORDS[REPOS.length] ?? REPOS.length;
+
 const escape = (s) =>
   String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
@@ -93,13 +118,23 @@ const repoRow = (repo) => `<article class="repo">
         </div>
       </article>`;
 
-const page = ({ cssUrl, faviconUrl }) => `<!DOCTYPE html>
+const page = ({ cssUrl, faviconUrl, ogImageUrl }) => `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>WDL — self-hosted Workers platform</title>
-<meta name="description" content="WDL — a self-hosted, multi-tenant Workers platform on workerd, its CLI, and this site.">
+<meta name="description" content="${escape(DESCRIPTION)}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="WDL">
+<meta property="og:url" content="${escape(SITE_URL)}">
+<meta property="og:title" content="WDL — self-hosted Workers platform">
+<meta property="og:description" content="${escape(DESCRIPTION)}">
+<meta property="og:image" content="${escape(ogImageUrl)}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="WDL — Workers, on your own metal.">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="${escape(faviconUrl)}">
 <link rel="stylesheet" href="${escape(cssUrl)}">
@@ -120,7 +155,7 @@ const page = ({ cssUrl, faviconUrl }) => `<!DOCTYPE html>
     </section>
 
     <main>
-      <div class="repos-head">Five repositories</div>
+      <h2 class="repos-head">${escape(repoCount)} repositories</h2>
       ${REPOS.map(repoRow).join("\n      ")}
     </main>
 
@@ -131,23 +166,46 @@ const page = ({ cssUrl, faviconUrl }) => `<!DOCTYPE html>
         <a href="mailto:hi@wdl.dev">hi@wdl.dev</a>.</p>
       <div class="foot-row">
         <span>Sean Consulting OÜ · Apache-2.0</span>
+        <span class="share-row">
+          <span>Share</span>
+          ${SHARE_LINKS.map(
+            (l) => `<a href="${escape(l.href)}" target="_blank" rel="noopener">${escape(l.label)}</a>`,
+          ).join("\n          ")}
+          <button type="button" class="share-native" aria-label="More share options" hidden>More&hellip;</button>
+        </span>
         <a href="${ORG}" target="_blank" rel="noopener">GitHub ↗</a>
       </div>
     </footer>
   </div>
+  <script>
+    const btn = document.querySelector(".share-native");
+    if (navigator.share) {
+      btn.hidden = false;
+      btn.onclick = () =>
+        navigator.share({ title: document.title, url: location.href }).catch(() => {});
+    }
+  </script>
 </body>
 </html>`;
 
 export default {
   async fetch(request, env) {
-    if (new URL(request.url).pathname === "/healthz") {
+    const { pathname } = new URL(request.url);
+    if (pathname === "/healthz") {
       return new Response("ok", { headers: { "content-type": "text/plain" } });
     }
-    const [cssUrl, faviconUrl] = await Promise.all([
+    if (pathname !== "/") {
+      return new Response("Not found\n", {
+        status: 404,
+        headers: { "content-type": "text/plain; charset=utf-8" },
+      });
+    }
+    const [cssUrl, faviconUrl, ogImageUrl] = await Promise.all([
       env.ASSETS.url("styles.css"),
       env.ASSETS.url("favicon.svg"),
+      env.ASSETS.url("og.png"),
     ]);
-    return new Response(page({ cssUrl, faviconUrl }), {
+    return new Response(page({ cssUrl, faviconUrl, ogImageUrl }), {
       headers: {
         "content-type": "text/html; charset=utf-8",
         "cache-control": "public, max-age=300",
