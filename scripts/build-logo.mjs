@@ -1,4 +1,4 @@
-// Regenerates public/favicon.svg and public/og.png from brand/WDL-black.svg.
+// Regenerates public/hero-w.svg, public/favicon.svg, and public/og.png from brand/WDL-mark.svg.
 // Usage: node scripts/build-logo.mjs   (or: npm run build:logo)
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -6,12 +6,16 @@ import { dirname, join } from "node:path";
 import sharp from "sharp";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const source = readFileSync(join(root, "brand/WDL-black.svg"), "utf8");
+const source = readFileSync(join(root, "brand/WDL-mark.svg"), "utf8");
 const paths = [...source.matchAll(/<path\b[^>]*?\bd="([^"]+)"/g)].map((m) => m[1]);
 
-if (paths.length === 0) throw new Error("no <path> elements found in brand/WDL-black.svg");
+if (paths.length === 0) throw new Error("no <path> elements found in brand/WDL-mark.svg");
 
 const mark = (fill) => paths.map((d) => `<path d="${d}" fill="${fill}"/>`).join("");
+// The base silhouette is the only path containing the W's far-left edge. Match
+// that geometry explicitly so reordering the source paths cannot change output.
+const heroWPath = paths.find((d) => d.includes("L68 318.175"));
+if (!heroWPath) throw new Error("W base path not found in brand/WDL-mark.svg");
 
 mkdirSync(join(root, "public"), { recursive: true });
 
@@ -41,19 +45,30 @@ const box = {
   h: probe.info.height,
 };
 
+// Deliberate lower-left crop in the canonical 644×644 coordinate system.
+// The SVG viewport performs the crop, so no clip path or transparent framing is needed.
+const heroWBox = { x: 68, y: 318, w: 265, h: 176 };
+const heroWSvg =
+  `<svg width="${heroWBox.w}" height="${heroWBox.h}" ` +
+  `viewBox="${heroWBox.x} ${heroWBox.y} ${heroWBox.w} ${heroWBox.h}" ` +
+  `xmlns="http://www.w3.org/2000/svg"><path d="${heroWPath}" fill="#000"/></svg>\n`;
+writeFileSync(join(root, "public/hero-w.svg"), heroWSvg);
+console.log(`wrote public/hero-w.svg (${heroWBox.w}×${heroWBox.h})`);
+
 // OG card text is rasterized with the build machine's DejaVu fonts (standard
 // on Linux); the PNG is committed, so only regeneration needs them.
-const MARK_W = 250; // visible mark width in the 1200×630 canvas
+// Keep all meaningful content inside the centered 630×630 crop used by
+// small social thumbnails, while retaining the standard 1200×630 OG canvas.
+const MARK_W = 260;
 const s = MARK_W / box.w;
 const ogSvg =
   `<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">` +
   `<rect width="1200" height="630" fill="#0a0a0a"/>` +
-  `<g transform="translate(${80 - box.x * s} ${(630 - box.h * s) / 2 - box.y * s}) scale(${s})">` +
+  `<g transform="translate(${600 - MARK_W / 2 - box.x * s} ${110 - box.y * s}) scale(${s})">` +
   mark("#fff") +
   `</g>` +
-  `<text x="390" y="228" font-family="DejaVu Sans Mono" font-size="26" letter-spacing="5" fill="#8a8f99">SELF-HOSTED WORKERS PLATFORM</text>` +
-  `<text x="386" y="320" font-family="DejaVu Sans" font-weight="bold" font-size="72" letter-spacing="-2" fill="#e9e9e3">Workers, on your` +
-  `<tspan x="386" dy="86">own metal.</tspan></text>` +
+  `<text x="600" y="400" text-anchor="middle" font-family="DejaVu Sans" font-weight="bold" font-size="64" letter-spacing="-2" fill="#e9e9e3">Workers, on` +
+  `<tspan x="600" dy="78">your own metal.</tspan></text>` +
   `</svg>`;
 await sharp(Buffer.from(ogSvg)).png().toFile(join(root, "public/og.png"));
 console.log("wrote public/og.png (1200×630)");

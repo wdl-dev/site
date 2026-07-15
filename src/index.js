@@ -3,6 +3,7 @@ const ORG = "https://github.com/wdl-dev";
 const REPOS = [
   {
     name: "wdl",
+    group: "Core",
     role: "platform",
     blurb:
       "The multi-tenant Workers platform, built on stock Cloudflare workerd with " +
@@ -18,6 +19,7 @@ const REPOS = [
   },
   {
     name: "cli",
+    group: "Core",
     role: "cli",
     blurb:
       "Ships your code to a WDL platform. Bundles the project with Wrangler v4, uploads " +
@@ -30,7 +32,21 @@ const REPOS = [
     ],
   },
   {
+    name: "aws-sigv4",
+    group: "Core",
+    role: "library",
+    blurb:
+      "A small, zero-dependency AWS SigV4 signer for web-standard runtimes and " +
+      "S3-compatible storage — a `SigV4Client` with sign() and fetch(), and nothing else.",
+    meta: "TypeScript · npm",
+    links: [
+      { label: "GitHub", href: `${ORG}/aws-sigv4` },
+      { label: "npm", href: "https://www.npmjs.com/package/@wdl-dev/aws-sigv4" },
+    ],
+  },
+  {
     name: "chat",
+    group: "Ecosystem",
     role: "product",
     blurb:
       "A WDL Worker that builds WDL Workers — an AI agent that turns one line into a " +
@@ -43,19 +59,8 @@ const REPOS = [
     ],
   },
   {
-    name: "aws-sigv4",
-    role: "library",
-    blurb:
-      "A small, zero-dependency AWS SigV4 signer for web-standard runtimes and " +
-      "S3-compatible storage — a `SigV4Client` with sign() and fetch(), and nothing else.",
-    meta: "TypeScript · npm",
-    links: [
-      { label: "GitHub", href: `${ORG}/aws-sigv4` },
-      { label: "npm", href: "https://www.npmjs.com/package/@wdl-dev/aws-sigv4" },
-    ],
-  },
-  {
     name: "site",
+    group: "Ecosystem",
     role: "site",
     blurb:
       "This page — a single WDL Worker scaffolded with `wdl init`. It renders its own " +
@@ -71,6 +76,8 @@ const DESCRIPTION =
   "with its CLI, AI worker builder, and libraries.";
 
 const SITE_URL = "https://wdl.dev/";
+// The WDL gateway owns /healthz on custom domains, so use a worker-specific path.
+const HEALTH_PATH = "/_worker-healthz";
 const SHARE_TEXT = "WDL — self-hosted Workers platform on stock workerd";
 const SHARE_LINKS = [
   {
@@ -89,6 +96,7 @@ const SHARE_LINKS = [
 
 const COUNT_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
 const repoCount = COUNT_WORDS[REPOS.length] ?? REPOS.length;
+const GROUPS = [...new Set(REPOS.map((repo) => repo.group))];
 
 const escape = (s) =>
   String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -106,17 +114,19 @@ const linkRow = (links) =>
     )
     .join("");
 
-const repoRow = (repo) => `<article class="repo">
-        <div class="repo-role"><span class="dot" aria-hidden="true"></span>${escape(repo.role)}</div>
-        <div class="repo-body">
-          <h3 class="repo-name">${escape(repo.name)}</h3>
+const repoRow = (repo) => `<div class="repo">
+          <h4 class="repo-name">${escape(repo.name)}</h4>
+          <small class="repo-role">${escape(repo.role)}</small>
           <p class="repo-blurb">${richText(repo.blurb)}</p>
           <div class="repo-foot">
             <span class="repo-links">${linkRow(repo.links)}</span>
             <span class="repo-meta">${escape(repo.meta)}</span>
           </div>
-        </div>
-      </article>`;
+        </div>`;
+
+// Keep both groups in one extractable block for Edge Reading Mode.
+const repoGroup = (group) => `<div class="repo-group-label" role="heading" aria-level="3"><strong>${escape(group)}</strong></div>
+        ${REPOS.filter((repo) => repo.group === group).map(repoRow).join("\n        ")}`;
 
 const page = ({ cssUrl, faviconUrl, ogImageUrl }) => `<!DOCTYPE html>
 <html lang="en">
@@ -141,22 +151,24 @@ const page = ({ cssUrl, faviconUrl, ogImageUrl }) => `<!DOCTYPE html>
 </head>
 <body>
   <div class="wrap">
-    <section class="hero">
-      <p class="eyebrow">Self-hosted Workers platform</p>
-      <h1>Workers, on your own metal.</h1>
-      <p class="sub">WDL runs Cloudflare&nbsp;Workers&ndash;shaped code on stock
-        <b>workerd</b> — multi-tenant, immutable, and namespaced to&nbsp;you.</p>
-      <div class="inset" role="img"
-           aria-label="Scaffold a worker named WDL, deploy it, then curl https://demo.wdl.sh/WDL">
-        <div class="line"><span class="prompt">$ </span>wdl init . --worker <span class="slot">WDL</span></div>
-        <div class="line"><span class="prompt">$ </span>wdl deploy .</div>
-        <div class="line"><span class="prompt">$ </span>curl https://<span class="slot">demo</span>.wdl.sh/<span class="slot">WDL</span></div>
-      </div>
-    </section>
-
     <main>
-      <h2 class="repos-head">${escape(repoCount)} repositories</h2>
-      ${REPOS.map(repoRow).join("\n      ")}
+      <article aria-labelledby="page-title">
+        <div class="hero">
+          <p class="eyebrow">Self-hosted Workers platform</p>
+          <h1 id="page-title">Workers, on your own metal.</h1>
+          <p class="sub">WDL runs Cloudflare&nbsp;Workers&ndash;shaped code on stock
+            <b>workerd</b> — multi-tenant, immutable, and namespaced to&nbsp;you.</p>
+          <div class="inset" role="img"
+               aria-label="Scaffold a worker named WDL, deploy it, then curl https://demo.wdl.sh/WDL">
+            <div class="line"><span class="prompt">$ </span>wdl init . --worker <span class="slot">WDL</span></div>
+            <div class="line"><span class="prompt">$ </span>wdl deploy .</div>
+            <div class="line"><span class="prompt">$ </span>curl https://<span class="slot">demo</span>.wdl.sh/<span class="slot">WDL</span></div>
+          </div>
+        </div>
+
+        <h2 class="repos-head">${escape(repoCount)} repositories</h2>
+        ${GROUPS.map(repoGroup).join("\n        ")}
+      </article>
     </main>
 
     <footer>
@@ -191,8 +203,13 @@ const page = ({ cssUrl, faviconUrl, ogImageUrl }) => `<!DOCTYPE html>
 export default {
   async fetch(request, env) {
     const { pathname } = new URL(request.url);
-    if (pathname === "/healthz") {
-      return new Response("ok", { headers: { "content-type": "text/plain" } });
+    if (pathname === HEALTH_PATH) {
+      return new Response("ok", {
+        headers: {
+          "content-type": "text/plain; charset=utf-8",
+          "cache-control": "no-store",
+        },
+      });
     }
     if (pathname !== "/") {
       return new Response("Not found\n", {
