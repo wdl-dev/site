@@ -1,4 +1,5 @@
-// Regenerates public/hero-w.svg, public/favicon.svg, and public/og.png from brand/WDL-mark.svg.
+// Regenerates the public/ brand outputs (hero-w.svg, favicon.svg, logo.png,
+// og.png) from brand/WDL-mark.svg.
 // Usage: node scripts/build-logo.mjs   (or: npm run build:logo)
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -27,6 +28,10 @@ const favSvg =
   `</svg>\n`;
 writeFileSync(join(root, "public/favicon.svg"), favSvg);
 console.log(`wrote public/favicon.svg (${paths.length} paths)`);
+
+// JSON-LD logo — Google's logo rich result prefers bitmaps over SVG.
+await sharp(Buffer.from(favSvg)).resize(512, 512).png().toFile(join(root, "public/logo.png"));
+console.log("wrote public/logo.png (512×512)");
 
 // The mark's paths sit inset in the 644×644 brand box; measure the visible
 // bbox so layout uses the ink, not the box.

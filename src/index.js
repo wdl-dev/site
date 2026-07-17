@@ -76,6 +76,7 @@ const DESCRIPTION =
   "with its CLI, AI worker builder, and libraries.";
 
 const SITE_URL = "https://wdl.dev/";
+const SITE_HOST = new URL(SITE_URL).hostname;
 // The WDL gateway owns /healthz on custom domains, so use a worker-specific path.
 const HEALTH_PATH = "/_worker-healthz";
 const SHARE_TEXT = "WDL — self-hosted Workers platform on stock workerd";
@@ -93,6 +94,48 @@ const SHARE_LINKS = [
     href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(SITE_URL)}`,
   },
 ];
+
+const CRAWLER_FILES = {
+  "/robots.txt": {
+    type: "text/plain; charset=utf-8",
+    body: `# AI crawlers (GPTBot, ClaudeBot, PerplexityBot, and friends) are welcome.
+User-agent: *
+Allow: /
+
+Sitemap: ${SITE_URL}sitemap.xml
+`,
+  },
+  "/sitemap.xml": {
+    type: "application/xml; charset=utf-8",
+    body: `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>${SITE_URL}</loc></url>
+</urlset>
+`,
+  },
+  "/llms.txt": {
+    type: "text/plain; charset=utf-8",
+    body: `# WDL
+
+> ${DESCRIPTION}
+
+${
+  "WDL is open-source serving infrastructure: a multi-tenant platform that runs " +
+  "Cloudflare Workers–shaped code on stock workerd, with multi-replica failover, " +
+  "immutable worker versions loaded from Redis/Valkey, and control/auth, KV, R2, " +
+  "D1, Durable Objects, queues, cron, Workflows, and live log tailing layered " +
+  "around the runtime. Code ships through the wdl CLI to your own control plane — " +
+  "nothing is ever sent to Cloudflare. Everything is Apache-2.0, and the hosted " +
+  "surfaces (per-namespace *.wdl.sh worker domains, chat.wdl.dev) are themselves " +
+  "tenants running on this same infrastructure."
+}
+
+## Repositories
+
+${REPOS.map((r) => `- [${r.name}](${ORG}/${r.name}) (${r.role}): ${r.blurb}`).join("\n")}
+`,
+  },
+};
 
 const COUNT_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
 const repoCount = COUNT_WORDS[REPOS.length] ?? REPOS.length;
@@ -128,13 +171,14 @@ const repoRow = (repo) => `<div class="repo">
 const repoGroup = (group) => `<div class="repo-group-label" role="heading" aria-level="3"><strong>${escape(group)}</strong></div>
         ${REPOS.filter((repo) => repo.group === group).map(repoRow).join("\n        ")}`;
 
-const page = ({ cssUrl, faviconUrl, ogImageUrl }) => `<!DOCTYPE html>
+const page = ({ cssUrl, faviconUrl, ogImageUrl, logoUrl }) => `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>WDL — self-hosted Workers platform</title>
 <meta name="description" content="${escape(DESCRIPTION)}">
+<link rel="canonical" href="${escape(SITE_URL)}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="WDL">
 <meta property="og:url" content="${escape(SITE_URL)}">
@@ -145,6 +189,20 @@ const page = ({ cssUrl, faviconUrl, ogImageUrl }) => `<!DOCTYPE html>
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="WDL — Workers, on your own metal.">
 <meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">${JSON.stringify({
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      name: "WDL",
+      url: SITE_URL,
+      logo: logoUrl,
+      email: "hi@wdl.dev",
+      sameAs: [ORG],
+    },
+    { "@type": "WebSite", name: "WDL", url: SITE_URL, description: DESCRIPTION },
+  ],
+}).replace(/</g, "\\u003c")}</script>
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="${escape(faviconUrl)}">
 <link rel="stylesheet" href="${escape(cssUrl)}">
@@ -202,12 +260,33 @@ const page = ({ cssUrl, faviconUrl, ogImageUrl }) => `<!DOCTYPE html>
 
 export default {
   async fetch(request, env) {
-    const { pathname } = new URL(request.url);
+    const url = new URL(request.url);
+    const { pathname } = url;
     if (pathname === HEALTH_PATH) {
       return new Response("ok", {
         headers: {
           "content-type": "text/plain; charset=utf-8",
           "cache-control": "no-store",
+          "x-robots-tag": "noindex",
+        },
+      });
+    }
+    // Health checks above must answer on the platform domain; everything else
+    // consolidates onto the canonical host. Build the target from SITE_URL:
+    // the gateway terminates TLS, so the incoming request is plain http and
+    // its scheme (and any internal port) must not leak into the redirect.
+    if (url.hostname !== SITE_HOST) {
+      const target = new URL(SITE_URL);
+      target.pathname = pathname;
+      target.search = url.search;
+      return Response.redirect(target, 301);
+    }
+    const crawlerFile = CRAWLER_FILES[pathname];
+    if (crawlerFile) {
+      return new Response(crawlerFile.body, {
+        headers: {
+          "content-type": crawlerFile.type,
+          "cache-control": "public, max-age=300",
         },
       });
     }
@@ -217,12 +296,13 @@ export default {
         headers: { "content-type": "text/plain; charset=utf-8" },
       });
     }
-    const [cssUrl, faviconUrl, ogImageUrl] = await Promise.all([
+    const [cssUrl, faviconUrl, ogImageUrl, logoUrl] = await Promise.all([
       env.ASSETS.url("styles.css"),
       env.ASSETS.url("favicon.svg"),
       env.ASSETS.url("og.png"),
+      env.ASSETS.url("logo.png"),
     ]);
-    return new Response(page({ cssUrl, faviconUrl, ogImageUrl }), {
+    return new Response(page({ cssUrl, faviconUrl, ogImageUrl, logoUrl }), {
       headers: {
         "content-type": "text/html; charset=utf-8",
         "cache-control": "public, max-age=300",
