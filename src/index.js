@@ -59,6 +59,20 @@ const REPOS = [
     ],
   },
   {
+    name: "docs",
+    group: "Ecosystem",
+    role: "docs",
+    blurb:
+      "Every doc in these repositories on one domain, aggregated from their markdown at " +
+      "build time. Append `.md` to any page — or ask for `text/markdown` — and an agent " +
+      "gets the source instead of the page.",
+    meta: "Worker · ASSETS",
+    links: [
+      { label: "GitHub", href: `${ORG}/docs` },
+      { label: "wdl.md", href: "https://wdl.md" },
+    ],
+  },
+  {
     name: "site",
     group: "Ecosystem",
     role: "site",
@@ -126,8 +140,8 @@ ${
   "D1, Durable Objects, queues, cron, Workflows, and live log tailing layered " +
   "around the runtime. Code ships through the wdl CLI to your own control plane — " +
   "nothing is ever sent to Cloudflare. Everything is Apache-2.0, and the hosted " +
-  "surfaces (per-namespace *.wdl.sh worker domains, chat.wdl.dev) are themselves " +
-  "tenants running on this same infrastructure."
+  "surfaces (per-namespace *.wdl.sh worker domains, chat.wdl.dev, wdl.md) are " +
+  "themselves tenants running on this same infrastructure."
 }
 
 ## Repositories
@@ -258,6 +272,10 @@ const page = ({ cssUrl, faviconUrl, ogImageUrl, logoUrl }) => `<!DOCTYPE html>
 </body>
 </html>`;
 
+// Kept in sync with the docs site (wdl.md) so both properties age alike.
+const CACHEABLE = { "cache-control": "public, max-age=21600, stale-while-revalidate=86400" };
+const UNCACHED = { "cache-control": "no-store" };
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -265,8 +283,8 @@ export default {
     if (pathname === HEALTH_PATH) {
       return new Response("ok", {
         headers: {
+          ...UNCACHED,
           "content-type": "text/plain; charset=utf-8",
-          "cache-control": "no-store",
           "x-robots-tag": "noindex",
         },
       });
@@ -284,16 +302,13 @@ export default {
     const crawlerFile = CRAWLER_FILES[pathname];
     if (crawlerFile) {
       return new Response(crawlerFile.body, {
-        headers: {
-          "content-type": crawlerFile.type,
-          "cache-control": "public, max-age=300",
-        },
+        headers: { ...CACHEABLE, "content-type": crawlerFile.type },
       });
     }
     if (pathname !== "/") {
       return new Response("Not found\n", {
         status: 404,
-        headers: { "content-type": "text/plain; charset=utf-8" },
+        headers: { ...UNCACHED, "content-type": "text/plain; charset=utf-8" },
       });
     }
     const [cssUrl, faviconUrl, ogImageUrl, logoUrl] = await Promise.all([
@@ -303,10 +318,7 @@ export default {
       env.ASSETS.url("logo.png"),
     ]);
     return new Response(page({ cssUrl, faviconUrl, ogImageUrl, logoUrl }), {
-      headers: {
-        "content-type": "text/html; charset=utf-8",
-        "cache-control": "public, max-age=300",
-      },
+      headers: { ...CACHEABLE, "content-type": "text/html; charset=utf-8" },
     });
   },
 };
