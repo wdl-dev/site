@@ -50,8 +50,8 @@ const REPOS = [
     role: "product",
     blurb:
       "A WDL Worker that builds WDL Workers — an AI agent that turns one line into a " +
-      "running worker: build it in a MicroVM sandbox, deploy it, preview it. A product " +
-      "running as a tenant on WDL.",
+      "running worker: build it in a MicroVM sandbox, deploy it, preview it. The " +
+      "reference demo, running as a tenant on WDL.",
     meta: "JS · MicroVM",
     links: [
       { label: "GitHub", href: `${ORG}/chat` },
@@ -78,7 +78,7 @@ const REPOS = [
     role: "site",
     blurb:
       "This page — a single WDL Worker scaffolded with `wdl init`. It renders its own " +
-      "HTML and serves its CSS and favicon through ASSETS. You're reading its response.",
+      "HTML and serves its static files through ASSETS. You're reading its response.",
     meta: "Worker · ASSETS",
     links: [{ label: "GitHub", href: `${ORG}/site` }],
   },
@@ -248,6 +248,8 @@ const page = ({ cssUrl, faviconUrl, ogImageUrl, logoUrl }) => `<!DOCTYPE html>
         — like you'd ship your own.</p>
       <p class="colophon">The hosted platform isn't live yet. To be a seed user, email
         <a href="mailto:hi@wdl.dev">hi@wdl.dev</a>.</p>
+      <p class="colophon">Not affiliated with, endorsed by, or sponsored by Cloudflare,&nbsp;Inc.
+        Cloudflare, Workers, Wrangler, and workerd are its trademarks.</p>
       <div class="foot-row">
         <span>Sean Consulting OÜ · Apache-2.0</span>
         <span class="share-row">
