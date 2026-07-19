@@ -144,6 +144,11 @@ ${
   "themselves tenants running on this same infrastructure."
 }
 
+## Documentation
+
+- [wdl.md](https://wdl.md): documentation for every repository here, aggregated from their markdown and served as a WDL Worker. Append \`.md\` to any page, or request \`text/markdown\`, to get the source instead of the HTML.
+- [wdl.md/llms.txt](https://wdl.md/llms.txt): machine-readable index of the docs site.
+
 ## Repositories
 
 ${REPOS.map((r) => `- [${r.name}](${ORG}/${r.name}) (${r.role}): ${r.blurb}`).join("\n")}
