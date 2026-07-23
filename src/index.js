@@ -160,8 +160,11 @@ const COUNT_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seve
 const repoCount = COUNT_WORDS[REPOS.length] ?? REPOS.length;
 const GROUPS = [...new Set(REPOS.map((repo) => repo.group))];
 
-const escape = (s) =>
-  String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+export const escape = (s) =>
+  String(s).replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]),
+  );
 
 // Escape, then promote `inline code` spans (backticks are safe post-escape).
 const richText = (s) => escape(s).replace(/`([^`]+)`/g, "<code>$1</code>");
