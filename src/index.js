@@ -90,9 +90,6 @@ const DESCRIPTION =
   "with its CLI, AI worker builder, and libraries.";
 
 const SITE_URL = "https://wdl.dev/";
-const SITE_HOST = new URL(SITE_URL).hostname;
-// The WDL gateway owns /healthz on custom domains, so use a worker-specific path.
-const HEALTH_PATH = "/_worker-healthz";
 const SHARE_TEXT = "WDL — self-hosted Workers platform on stock workerd";
 const SHARE_LINKS = [
   {
@@ -288,27 +285,7 @@ const UNCACHED = { "cache-control": "no-store" };
 
 export default {
   async fetch(request, env) {
-    const url = new URL(request.url);
-    const { pathname } = url;
-    if (pathname === HEALTH_PATH) {
-      return new Response("ok", {
-        headers: {
-          ...UNCACHED,
-          "content-type": "text/plain; charset=utf-8",
-          "x-robots-tag": "noindex",
-        },
-      });
-    }
-    // Health checks above must answer on the platform domain; everything else
-    // consolidates onto the canonical host. Build the target from SITE_URL:
-    // the gateway terminates TLS, so the incoming request is plain http and
-    // its scheme (and any internal port) must not leak into the redirect.
-    if (url.hostname !== SITE_HOST) {
-      const target = new URL(SITE_URL);
-      target.pathname = pathname;
-      target.search = url.search;
-      return Response.redirect(target, 301);
-    }
+    const { pathname } = new URL(request.url);
     const crawlerFile = CRAWLER_FILES[pathname];
     if (crawlerFile) {
       return new Response(crawlerFile.body, {

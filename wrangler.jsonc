@@ -17,5 +17,9 @@
   // serves wdl.dev directly, not just <ns>.<platform-domain>.
   "routes": [
     "wdl.dev/*"
-  ]
+  ],
+
+  // Serve only on wdl.dev: with a route pattern set, this makes the gateway 404
+  // the <ns>.<platform-domain> URL, so there is no duplicate host to consolidate.
+  "workers_dev": false
 }

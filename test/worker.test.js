@@ -7,8 +7,7 @@ import worker, { escape } from "../src/index.js";
 // The page route resolves asset URLs; every other route returns before it.
 const ENV = { ASSETS: { url: async (p) => `https://assets.example/${p}` } };
 
-const get = (path, { host = "wdl.dev", ...init } = {}) =>
-  worker.fetch(new Request(`https://${host}${path}`, init), ENV);
+const get = (path) => worker.fetch(new Request(`https://wdl.dev${path}`), ENV);
 
 const CACHEABLE = "public, max-age=21600, stale-while-revalidate=86400";
 
@@ -25,14 +24,6 @@ test("/ is a cacheable HTML page", async () => {
   assert.equal(res.status, 200);
   assert.equal(res.headers.get("content-type"), "text/html; charset=utf-8");
   assert.equal(res.headers.get("cache-control"), CACHEABLE);
-});
-
-test("the health endpoint is uncacheable, unindexed plain text", async () => {
-  const res = await get("/_worker-healthz");
-  assert.equal(res.status, 200);
-  assert.equal(await res.text(), "ok");
-  assert.equal(res.headers.get("cache-control"), "no-store");
-  assert.equal(res.headers.get("x-robots-tag"), "noindex");
 });
 
 test("unknown paths are an uncacheable 404", async () => {
@@ -58,36 +49,6 @@ test("crawler files are served with their own content types", async () => {
 test("robots.txt points at the sitemap", async () => {
   const body = await (await get("/robots.txt")).text();
   assert.match(body, /^Sitemap: https:\/\/wdl\.dev\/sitemap\.xml$/m);
-});
-
-// ---- canonical-host consolidation ----
-
-test("non-canonical hosts get a 301 preserving path and query", async () => {
-  const res = await get("/llms.txt?x=1", { host: "site.wdl.sh" });
-  assert.equal(res.status, 301);
-  assert.equal(res.headers.get("location"), "https://wdl.dev/llms.txt?x=1");
-});
-
-test("the redirect forces https even when the gateway hands us http", async () => {
-  // The gateway terminates TLS, so the inbound request is plain http; the
-  // canonical URL must not inherit that scheme.
-  const res = await worker.fetch(new Request("http://site.wdl.sh/", {}), ENV);
-  assert.equal(res.status, 301);
-  assert.ok(res.headers.get("location").startsWith("https://"), "https Location");
-});
-
-test("a redirect never leaves the canonical origin", async () => {
-  // `//example.com/x` is a legal pathname; rebuilt naively it would be a
-  // protocol-relative redirect off-site.
-  const res = await get("//example.com/x", { host: "site.wdl.sh" });
-  assert.equal(res.status, 301);
-  assert.equal(new URL(res.headers.get("location")).hostname, "wdl.dev");
-});
-
-test("the health endpoint answers on the platform host, not a redirect", async () => {
-  // Platform probes hit it on the platform domain; a 301 would break them.
-  const res = await get("/_worker-healthz", { host: "site.wdl.sh" });
-  assert.equal(res.status, 200);
 });
 
 // ---- page derived from the repo list ----
