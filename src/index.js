@@ -50,8 +50,8 @@ const REPOS = [
     role: "product",
     blurb:
       "A WDL Worker that builds WDL Workers — an AI agent that turns one line into a " +
-      "running worker: build it in a MicroVM sandbox, deploy it, preview it. The " +
-      "reference demo, running as a tenant on WDL.",
+      "running worker: build in a MicroVM sandbox, deploy, preview. The reference " +
+      "demo, running as a tenant on WDL.",
     meta: "JS · MicroVM",
     links: [
       { label: "GitHub", href: `${ORG}/chat` },
@@ -64,8 +64,8 @@ const REPOS = [
     role: "docs",
     blurb:
       "Every doc in these repositories on one domain, aggregated from their markdown at " +
-      "build time. Append `.md` to any page — or ask for `text/markdown` — and an agent " +
-      "gets the source instead of the page.",
+      "build time. Append `.md` to any page — or ask for `text/markdown` — and an " +
+      "agent gets the source, not the page.",
     meta: "Worker · ASSETS",
     links: [
       { label: "GitHub", href: `${ORG}/docs` },
@@ -249,9 +249,8 @@ const page = ({ cssUrl, faviconUrl, ogImageUrl, logoUrl }) => `<!DOCTYPE html>
     </main>
 
     <footer>
-      <p class="colophon">This page is itself a WDL Worker, deployed with <code>wdl deploy</code>
-        — like you'd ship your own.</p>
-      <p class="colophon">The hosted platform isn't live yet. To be a seed user, email
+      <p class="colophon">This page is itself a WDL Worker on the hosted preview — a live,
+        rolling demo, not a commercial service, no commitments. To test on it, email
         <a href="mailto:hi@wdl.dev">hi@wdl.dev</a>.</p>
       <p class="colophon">Not affiliated with, endorsed by, or sponsored by Cloudflare,&nbsp;Inc.
         Cloudflare, Workers, Wrangler, and workerd are its trademarks.</p>
