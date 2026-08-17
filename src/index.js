@@ -6,10 +6,10 @@ const REPOS = [
     group: "Core",
     role: "platform",
     blurb:
-      "The multi-tenant Workers platform, built on stock Cloudflare workerd with " +
+      "The multi-tenant Workers platform \u2014 stock Cloudflare\u00a0workerd with " +
       "multi-replica failover. Loads immutable worker versions from Redis/Valkey, then " +
-      "layers control/auth, KV, R2, D1, Durable Objects, queues, cron, Workflows, and " +
-      "live log tailing around the runtime.",
+      "layers control/auth, KV, R2, D1, Durable Objects, queues, cron, Workflows, " +
+      "namespace-scoped AI, and live log tailing around the runtime.",
     meta: "Rust · JS",
     links: [
       { label: "GitHub", href: `${ORG}/wdl` },
@@ -22,9 +22,9 @@ const REPOS = [
     group: "Core",
     role: "cli",
     blurb:
-      "Ships your code to a WDL platform. Bundles the project with Wrangler v4, uploads " +
-      "it to the control plane, and manages D1, R2, KV, queues, secrets, and `wdl tail` " +
-      "logs inside your own namespace. Nothing is ever sent to Cloudflare.",
+      "Ships your code to a WDL platform. Bundles the project with Wrangler\u00a0v4, uploads " +
+      "it to the control plane, and manages D1, R2, KV, queues, secrets, AI providers, " +
+      "and `wdl tail` logs inside your own namespace. Nothing is ever sent to Cloudflare.",
     meta: "JS · npm",
     links: [
       { label: "GitHub", href: `${ORG}/cli` },
@@ -37,7 +37,7 @@ const REPOS = [
     role: "library",
     blurb:
       "A small, zero-dependency AWS SigV4 signer for web-standard runtimes and " +
-      "S3-compatible storage — a `SigV4Client` with sign() and fetch(), and nothing else.",
+      "S3-compatible storage — a `SigV4Client` with sign()\u00a0and\u00a0fetch(), and nothing else.",
     meta: "TypeScript · npm",
     links: [
       { label: "GitHub", href: `${ORG}/aws-sigv4` },
@@ -134,11 +134,11 @@ ${
   "WDL is open-source serving infrastructure: a multi-tenant platform that runs " +
   "Cloudflare Workers–shaped code on stock workerd, with multi-replica failover, " +
   "immutable worker versions loaded from Redis/Valkey, and control/auth, KV, R2, " +
-  "D1, Durable Objects, queues, cron, Workflows, and live log tailing layered " +
-  "around the runtime. Code ships through the wdl CLI to your own control plane — " +
-  "nothing is ever sent to Cloudflare. Everything is Apache-2.0, and the hosted " +
-  "surfaces (per-namespace *.wdl.sh worker domains, chat.wdl.dev, wdl.md) are " +
-  "themselves tenants running on this same infrastructure."
+  "D1, Durable Objects, queues, cron, Workflows, namespace-scoped AI, and live log " +
+  "tailing layered around the runtime. Code ships through the wdl CLI to your own " +
+  "control plane — nothing is ever sent to Cloudflare. Everything is Apache-2.0, " +
+  "and the hosted surfaces (per-namespace *.wdl.sh worker domains, chat.wdl.dev, " +
+  "wdl.md) are themselves tenants running on this same infrastructure."
 }
 
 ## Documentation

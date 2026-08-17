@@ -125,7 +125,7 @@ h1 {
 }
 .repo-blurb code {
   font: 0.9em/1 var(--mono); background: var(--raised);
-  padding: 1px 5px; border-radius: 4px;
+  padding: 1px 5px; border-radius: 4px; white-space: nowrap;
 }
 .repo-foot {
   grid-area: foot;
