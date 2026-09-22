@@ -11,8 +11,8 @@
     "dry-run": "wrangler deploy --dry-run --outdir=.deploy-dist"
   },
   "devDependencies": {
-    "@wdl-dev/cli": "^1.8.0",
-    "sharp": "^0.35.3",
+    "@wdl-dev/cli": "^1.9.0",
+    "sharp": "^0.35.4",
     "wrangler": "^4.111.0"
   }
 }
